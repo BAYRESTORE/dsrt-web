@@ -3,421 +3,434 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DSRT Editor Full</title>
+<title>DSRT - Digital Smart Revise Technology</title>
 <style>
-  body {
-    margin: 0; font-family: Arial, sans-serif; background: #0b1420; color: #cce7e8;
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
   }
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #134254; padding: 10px 16px; font-weight: bold;
+  body, html {
+    margin:0; padding:0;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    background: #f5f7fa;
   }
-  header button {
-    background: transparent; border: none; color: #33cccc; font-size: 20px; cursor: pointer;
+  /* Sidebar */
+  #sidebar {
+    width: 280px;
+    background: #1e90ff;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
   }
-  #canvas-area {
-    margin: 16px auto; background: #222a33; border-radius: 8px; width: 90vw; max-width: 600px; height: 400px;
-    display: flex; justify-content: center; align-items: center; color: #777;
-  }
-  #canvas-area img {
-    max-width: 100%; max-height: 100%;
-    filter: none;
+  #sidebar h2 {
+    margin: 0;
+    padding: 16px;
+    cursor: pointer;
     user-select: none;
-    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
   }
-  .tabs {
-    display: flex; justify-content: center; margin: 10px 0; gap: 12px;
+  #sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 16px 16px 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
   }
-  .tab {
-    padding: 8px 16px; background: #134254; border-radius: 20px; cursor: pointer;
-    color: #33cccc; user-select: none; transition: background 0.3s;
+  #sidebar ul.expanded {
+    max-height: 600px;
+    overflow-y: auto;
   }
-  .tab.active {
-    background: #33cccc; color: #0b1420; font-weight: bold;
-  }
-  .panel {
-    max-width: 600px; margin: 0 auto 20px auto; background: #0b1420cc; border-radius: 10px; padding: 12px;
-  }
-  /* Capsule Filters */
-  .filter-categories, .filter-list {
-    display: flex; overflow-x: auto; gap: 8px; padding: 4px 0;
-  }
-  .scroll-btn {
-    background: #134254; color: #33cccc; border: none; font-weight: bold; cursor: pointer;
-    width: 30px; border-radius: 4px;
+  #sidebar ul li {
+    padding: 10px 8px;
+    border-radius: 4px;
+    cursor: pointer;
     user-select: none;
+    transition: background-color 0.2s;
   }
-  .filter-categories button, .filter-list button {
-    flex: 0 0 auto; background: #0b1420cc; border: none; color: #cce7e8; padding: 6px 12px;
-    border-radius: 20px; cursor: pointer; user-select: none;
-    transition: background 0.3s;
+  #sidebar ul li:hover, #sidebar ul li.active {
+    background: rgba(255,255,255,0.3);
   }
-  .filter-categories button.active, .filter-list button.active {
-    background: #33cccc; color: #0b1420; font-weight: bold;
+  /* Toggle icon */
+  .toggle-icon {
+    border-style: solid;
+    border-width: 6px 6px 0 6px;
+    border-color: white transparent transparent transparent;
+    display: inline-block;
+    transition: transform 0.3s ease;
   }
-  .filter-categories button:hover, .filter-list button:hover {
-    background: #2aa9a9; color: #0b1420;
+  .expanded > .toggle-icon {
+    transform: rotate(180deg);
   }
-  /* Manual Tools Accordion */
-  .manual-tools-category {
-    margin-bottom: 16px; border-bottom: 1px solid #224455;
+  /* Main content */
+  #main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
   }
-  .category-header {
-    display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; padding: 6px 12px; user-select: none;
-    background: #134254; color: #33cccc; border-radius: 8px 8px 0 0;
+  #canvas-container {
+    flex-grow: 1;
+    background: #ddd;
+    border: 2px dashed #999;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
-  .category-header:hover {
-    background: #2aa9a9;
+  #canvas {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
   }
-  .category-header .arrow {
-    font-weight: bold; font-size: 18px; user-select: none;
+  /* Controls */
+  #controls {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
   }
-  .tools-list {
-    display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 12px;
-    background: #0b1420cc; border-radius: 0 0 8px 8px;
+  button, select {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    background: #1e90ff;
+    color: white;
+    transition: background-color 0.3s;
   }
-  .tools-list button {
-    flex: 1 0 30%; min-width: 120px;
-    background: #0b1420cc; color: #cce7e8; border: none; border-radius: 25px;
-    padding: 8px 14px; cursor: pointer; user-select: none;
-    transition: background 0.3s;
-  }
-  .tools-list button:hover {
-    background: #33cccc; color: #0b1420;
-  }
-  /* Slider */
-  .slider-container {
-    max-width: 600px; margin: 12px auto; text-align: center;
-    color: #33cccc;
+  button:hover, select:hover {
+    background: #187bcd;
   }
   input[type=range] {
-    -webkit-appearance: none; width: 80%; height: 8px; border-radius: 5px;
-    background: #224455;
-    outline: none;
-    margin-top: 6px;
+    width: 250px;
   }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
-    border-radius: 50%; background: #33cccc; cursor: pointer;
-    border: 2px solid #0b1420;
+  /* Slider panel */
+  #slider-panel {
+    margin-top: 20px;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.15);
+    max-width: 400px;
   }
-  /* Download Button */
-  .download-container {
-    max-width: 600px; margin: 0 auto 40px auto; text-align: right;
+  #slider-panel label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
   }
-  select, button.download-btn {
-    background: #134254; border: none; color: #33cccc; padding: 8px 14px;
-    border-radius: 8px; cursor: pointer; font-weight: bold;
+  /* Back button */
+  #back-btn {
+    margin-top: auto;
+    padding: 12px 20px;
+    background: #f44336;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
   }
-  select {
-    margin-right: 12px;
+  #back-btn:hover {
+    background: #d32f2f;
   }
-  @media (max-width: 640px) {
-    .tools-list button {
-      flex: 1 0 45%;
-      min-width: auto;
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
     }
-    .filter-categories button, .filter-list button {
-      padding: 6px 10px;
-      font-size: 14px;
+    #sidebar {
+      width: 100%;
+      height: auto;
+      flex-direction: row;
+      overflow-x: auto;
+    }
+    #sidebar h2 {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 16px;
+      border-bottom: none;
+      border-right: 1px solid rgba(255,255,255,0.3);
+    }
+    #sidebar ul {
+      max-height: none !important;
+      padding: 0 8px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    #sidebar ul li {
+      border-radius: 4px;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+    #main {
+      padding: 10px;
+    }
+    #slider-panel {
+      max-width: 100%;
+      margin-top: 12px;
+    }
+    input[type=range] {
+      width: 100%;
     }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <button id="backBtn" aria-label="Back">&lt;</button>
-  <div>Digital Smart Revise Technology</div>
-  <button id="uploadBtn" aria-label="Upload Image">Upload Image</button>
-</header>
+<div id="sidebar">
+  <h2 id="filter-header" class="expandable">FILTER
+    <span class="toggle-icon"></span>
+  </h2>
+  <ul id="filter-list" class="">
+    <li data-filter="hue">Hue</li>
+    <li data-filter="sepia">Sepia</li>
+    <li data-filter="blur">Blur</li>
+    <li data-filter="bmw">BMW</li>
+    <li data-filter="grayscale">Grayscale</li>
+    <li data-filter="invert">Invert</li>
+    <li data-filter="brightness">Brightness</li>
+    <li data-filter="contrast">Contrast</li>
+    <li data-filter="saturation">Saturation</li>
+    <li data-filter="others">Others</li>
+  </ul>
 
-<div id="canvas-area">
-  <div>Canvas Image Placeholder</div>
+  <h2 id="tools-header" class="expandable">MANUAL TOOLS
+    <span class="toggle-icon"></span>
+  </h2>
+  <ul id="tools-list" class="">
+    <li data-tool="basic">Basic</li>
+    <li data-tool="intermediate">Intermediate</li>
+    <li data-tool="pro">Pro</li>
+  </ul>
+
+  <button id="back-btn">&lt; Back</button>
 </div>
 
-<div class="tabs" role="tablist">
-  <div class="tab active" data-tab="filters" role="tab" aria-selected="true" tabindex="0">Capsule Filters</div>
-  <div class="tab" data-tab="manualtools" role="tab" aria-selected="false" tabindex="-1">Manual Tools</div>
-</div>
-
-<!-- Filters Panel -->
-<div class="panel" id="filters-panel" role="tabpanel" tabindex="0">
-  <div style="display:flex; align-items:center; gap:8px;">
-    <button class="scroll-btn" id="catScrollLeft" aria-label="Scroll Categories Left">&lt;</button>
-    <div class="filter-categories" id="filterCategories" tabindex="0" aria-label="Filter Categories">
-      <!-- Categories inserted here -->
-    </div>
-    <button class="scroll-btn" id="catScrollRight" aria-label="Scroll Categories Right">&gt;</button>
+<div id="main">
+  <div id="canvas-container">
+    <canvas id="canvas" width="600" height="400" style="background:#fff; border-radius:8px;"></canvas>
   </div>
-
-  <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
-    <button class="scroll-btn" id="filterScrollLeft" aria-label="Scroll Filters Left">&lt;</button>
-    <div class="filter-list" id="filterList" tabindex="0" aria-label="Filters">
-      <!-- Filters inserted here -->
-    </div>
-    <button class="scroll-btn" id="filterScrollRight" aria-label="Scroll Filters Right">&gt;</button>
+  <div id="slider-panel" style="display:none;">
+    <label for="slider">Intensitas <span id="slider-label"></span></label>
+    <input type="range" id="slider" min="0" max="200" value="100" />
   </div>
-
-  <div class="slider-container" id="filterSliderContainer" style="display:none;">
-    <label for="filterSlider">Intensity:</label><br/>
-    <input type="range" id="filterSlider" min="0" max="100" value="50" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" />
+  <div id="controls">
+    <input type="file" id="upload" accept="image/*" />
+    <button id="reset-btn">Reset</button>
+    <select id="download-res">
+      <option value="320">Download 320px</option>
+      <option value="640" selected>Download 640px</option>
+      <option value="1280">Download 1280px</option>
+      <option value="1920">Download 1920px</option>
+    </select>
+    <button id="download-btn">Download</button>
   </div>
-</div>
-
-<!-- Manual Tools Panel -->
-<div class="panel" id="manualtools-panel" style="display:none;" role="tabpanel" tabindex="0">
-  <div class="manual-tools-category">
-    <div class="category-header" tabindex="0">
-      Basic <span class="arrow">▼</span>
-    </div>
-    <div class="tools-list">
-      <button>Crop</button>
-      <button>Resize</button>
-      <button>Rotate</button>
-      <button>Flip Horizontal</button>
-      <button>Flip Vertical</button>
-    </div>
-  </div>
-  <div class="manual-tools-category">
-    <div class="category-header" tabindex="0">
-      Advanced <span class="arrow">▼</span>
-    </div>
-    <div class="tools-list">
-      <button>Clone Stamp</button>
-      <button>Spot Removal</button>
-      <button>Healing Brush</button>
-      <button>Sharpen</button>
-      <button>Blur</button>
-      <button>Color Correction</button>
-    </div>
-  </div>
-  <div class="manual-tools-category">
-    <div class="category-header" tabindex="0">
-      Pro <span class="arrow">▼</span>
-    </div>
-    <div class="tools-list">
-      <button>Dodge & Burn</button>
-      <button>Noise Reduction</button>
-      <button>Lens Correction</button>
-      <button>Perspective Warp</button>
-      <button>Batch Processing</button>
-    </div>
-  </div>
-  <div class="slider-container" id="toolsSliderContainer" style="display:none;">
-    <label for="toolsSlider">Intensity:</label><br/>
-    <input type="range" id="toolsSlider" min="0" max="100" value="50" />
-  </div>
-</div>
-
-<div class="download-container">
-  <select id="downloadRes" aria-label="Pilih resolusi download">
-    <option value="640">Kecil (640x480)</option>
-    <option value="1280" selected>Sedang (1280x960)</option>
-    <option value="1920">Besar (1920x1440)</option>
-    <option value="original">Asli (Original Size)</option>
-  </select>
-  <button class="download-btn" id="downloadBtn">Download</button>
 </div>
 
 <script>
-  const filterCategories = ['Normal', 'Hue', 'Blur', 'Sepia', 'BMW', 'Vintage'];
-  const filters = {
-    'Normal': ['Normal', 'Grayscale', 'Sepia', 'Blur Low', 'Brightness High', 'Contrast', 'Invert'],
-    'Hue': ['Hue +10', 'Hue +20', 'Hue -10', 'Hue -20'],
-    'Blur': ['Blur Low', 'Blur Medium', 'Blur High'],
-    'Sepia': ['Sepia Light', 'Sepia Medium', 'Sepia Strong'],
-    'BMW': ['BMW Classic', 'BMW Sport', 'BMW Retro'],
-    'Vintage': ['Vintage Warm', 'Vintage Cool']
-  };
+  // Sidebar accordion toggles
+  const filterHeader = document.getElementById('filter-header');
+  const filterList = document.getElementById('filter-list');
+  const toolsHeader = document.getElementById('tools-header');
+  const toolsList = document.getElementById('tools-list');
 
-  const filtersWithIntensity = ['Blur Low', 'Blur Medium', 'Blur High', 'Brightness High', 'Contrast', 'Hue +10', 'Hue +20', 'Hue -10', 'Hue -20', 'Sepia Light', 'Sepia Medium', 'Sepia Strong'];
-
-  const filterCategoriesDiv = document.getElementById('filterCategories');
-  const filterListDiv = document.getElementById('filterList');
-  const filterSliderContainer = document.getElementById('filterSliderContainer');
-  const filterSlider = document.getElementById('filterSlider');
-
-  const tabs = document.querySelectorAll('.tab');
-  const filtersPanel = document.getElementById('filters-panel');
-  const manualtoolsPanel = document.getElementById('manualtools-panel');
-
-  const canvasArea = document.getElementById('canvas-area');
-
-  // Img element for canvas area
-  let img = document.createElement('img');
-  img.style.maxWidth = '100%';
-  img.style.maxHeight = '100%';
-  canvasArea.innerHTML = '';
-  canvasArea.appendChild(img);
-
-  let currentFilter = 'none';
-  let currentFilterValue = 50;
-
-  // Render filter categories buttons
-  function renderFilterCategories() {
-    filterCategoriesDiv.innerHTML = '';
-    filterCategories.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.textContent = cat;
-      btn.dataset.cat = cat;
-      if (cat === filterCategories[0]) btn.classList.add('active');
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#filterCategories button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderFilters(cat);
-      });
-      filterCategoriesDiv.appendChild(btn);
-    });
-  }
-
-  // Render filters buttons for selected category
-  function renderFilters(category) {
-    filterListDiv.innerHTML = '';
-    const fltrs = filters[category] || [];
-    fltrs.forEach(flt => {
-      const btn = document.createElement('button');
-      btn.textContent = flt;
-      btn.dataset.filter = flt;
-      btn.addEventListener('click', () => {
-        applyFilter(flt, 50);
-        // Show slider if filter supports intensity
-        if (filtersWithIntensity.includes(flt)) {
-          filterSliderContainer.style.display = 'block';
-          filterSlider.value = 50;
-        } else {
-          filterSliderContainer.style.display = 'none';
-        }
-        // Highlight active filter
-        document.querySelectorAll('#filterList button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-      filterListDiv.appendChild(btn);
-    });
-  }
-
-  // Apply CSS filter to img element
-  function applyFilter(filterName, intensity = 50) {
-    currentFilter = filterName;
-    currentFilterValue = intensity;
-    let cssFilter = 'none';
-
-    switch (filterName) {
-      case 'Blur Low':
-        cssFilter = `blur(${(intensity / 50)}px)`;
-        break;
-      case 'Blur Medium':
-        cssFilter = `blur(${(intensity / 25)}px)`;
-        break;
-      case 'Blur High':
-        cssFilter = `blur(${(intensity / 15)}px)`;
-        break;
-      case 'Brightness High':
-        cssFilter = `brightness(${1 + intensity / 100})`;
-        break;
-      case 'Contrast':
-        cssFilter = `contrast(${1 + intensity / 100})`;
-        break;
-      case 'Grayscale':
-        cssFilter = `grayscale(${intensity / 100})`;
-        break;
-      case 'Sepia':
-      case 'Sepia Light':
-      case 'Sepia Medium':
-      case 'Sepia Strong':
-        cssFilter = `sepia(${intensity / 100})`;
-        break;
-      case 'Invert':
-        cssFilter = `invert(${intensity / 100})`;
-        break;
-      case 'Hue +10':
-      case 'Hue +20':
-      case 'Hue -10':
-      case 'Hue -20':
-        let deg = parseInt(filterName.match(/[-+]?\d+/)[0]);
-        cssFilter = `hue-rotate(${deg}deg)`;
-        break;
-      default:
-        cssFilter = 'none';
-    }
-    img.style.filter = cssFilter;
-  }
-
-  // Scroll buttons for categories and filters
-  document.getElementById('catScrollLeft').onclick = () => {
-    filterCategoriesDiv.scrollBy({left: -100, behavior: 'smooth'});
-  };
-  document.getElementById('catScrollRight').onclick = () => {
-    filterCategoriesDiv.scrollBy({left: 100, behavior: 'smooth'});
-  };
-  document.getElementById('filterScrollLeft').onclick = () => {
-    filterListDiv.scrollBy({left: -100, behavior: 'smooth'});
-  };
-  document.getElementById('filterScrollRight').onclick = () => {
-    filterListDiv.scrollBy({left: 100, behavior: 'smooth'});
-  };
-
-  // Tabs switching
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-        t.tabIndex = -1;
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      tab.tabIndex = 0;
-
-      if (tab.dataset.tab === 'filters') {
-        filtersPanel.style.display = 'block';
-        manualtoolsPanel.style.display = 'none';
-        filterSliderContainer.style.display = filterSliderContainer.style.display === 'block' ? 'block' : 'none';
-        document.getElementById('toolsSliderContainer').style.display = 'none';
-      } else {
-        filtersPanel.style.display = 'none';
-        manualtoolsPanel.style.display = 'block';
-        document.getElementById('toolsSliderContainer').style.display = 'none';
-        filterSliderContainer.style.display = 'none';
-      }
-    });
-  });
-
-  // Manual Tools Accordion all open by default and toggle on click
-  document.querySelectorAll('.manual-tools-category').forEach(cat => {
-    const header = cat.querySelector('.category-header');
-    const toolsList = cat.querySelector('.tools-list');
-    toolsList.style.display = 'flex';
-    header.querySelector('.arrow').textContent = '▼';
-
+  function toggleAccordion(header, list) {
     header.addEventListener('click', () => {
-      if (toolsList.style.display === 'none') {
-        toolsList.style.display = 'flex';
-        header.querySelector('.arrow').textContent = '▼';
-      } else {
-        toolsList.style.display = 'none';
-        header.querySelector('.arrow').textContent = '►';
+      const expanded = list.classList.toggle('expanded');
+      header.classList.toggle('expanded', expanded);
+    });
+  }
+  toggleAccordion(filterHeader, filterList);
+  toggleAccordion(toolsHeader, toolsList);
+
+  // Variables for canvas and image
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let originalImage = null;
+  let currentFilter = null;
+  let currentFilterValue = 100;
+
+  // Upload image
+  const uploadInput = document.getElementById('upload');
+  uploadInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        // Resize canvas to image ratio max 600x400
+        let w = img.width;
+        let h = img.height;
+        const maxW = 600;
+        const maxH = 400;
+        if(w > maxW || h > maxH) {
+          const scale = Math.min(maxW/w, maxH/h);
+          w = w*scale;
+          h = h*scale;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, w, h);
+        originalImage = img;
+        resetFilter();
       }
+      img.src = ev.target.result;
+    }
+    reader.readAsDataURL(file);
+  });
+
+  // Reset button
+  const resetBtn = document.getElementById('reset-btn');
+  resetBtn.addEventListener('click', () => {
+    if (!originalImage) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+    resetFilter();
+  });
+
+  // Slider panel
+  const sliderPanel = document.getElementById('slider-panel');
+  const sliderLabel = document.getElementById('slider-label');
+  const slider = document.getElementById('slider');
+
+  // Filters config: css filter function + default value + max/min for slider
+  const filtersConfig = {
+    hue: { css: v => `hue-rotate(${v}deg)`, default: 0, min: -180, max: 180, step: 1 },
+    sepia: { css: v => `sepia(${v}%)`, default: 0, min: 0, max: 100, step: 1 },
+    blur: { css: v => `blur(${v}px)`, default: 0, min: 0, max: 10, step: 0.1 },
+    bmw: { css: v => `contrast(${100+v}%) saturate(${100+v}%)`, default: 0, min: -50, max: 50, step: 1 }, // custom filter example
+    grayscale: { css: v => `grayscale(${v}%)`, default: 0, min: 0, max: 100, step: 1 },
+    invert: { css: v => `invert(${v}%)`, default: 0, min: 0, max: 100, step: 1 },
+    brightness: { css: v => `brightness(${v}%)`, default: 100, min: 50, max: 150, step: 1 },
+    contrast: { css: v => `contrast(${v}%)`, default: 100, min: 50, max: 150, step: 1 },
+    saturation: { css: v => `saturate(${v}%)`, default: 100, min: 50, max: 150, step: 1 },
+    others: { css: v => `opacity(${v}%)`, default: 100, min: 0, max: 100, step: 1 }
+  };
+
+  // Update filter on canvas by redrawing original image with css filter applied on canvas container
+  function applyFilter() {
+    if (!originalImage) return;
+    const filterFn = filtersConfig[currentFilter]?.css;
+    if (!filterFn) {
+      canvas.style.filter = 'none';
+      return;
+    }
+    const val = currentFilterValue;
+    canvas.style.filter = filterFn(val);
+  }
+
+  // Reset filter settings
+  function resetFilter() {
+    currentFilter = null;
+    currentFilterValue = 100;
+    sliderPanel.style.display = 'none';
+    slider.value = 100;
+    sliderLabel.textContent = '';
+    canvas.style.filter = 'none';
+
+    // Remove active class from filter items
+    filterList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+  }
+
+  // Click filter category
+  filterList.querySelectorAll('li').forEach(li => {
+    li.addEventListener('click', () => {
+      if (!originalImage) {
+        alert('Silakan upload gambar terlebih dahulu');
+        return;
+      }
+      // Set active class highlight
+      filterList.querySelectorAll('li').forEach(i => i.classList.remove('active'));
+      li.classList.add('active');
+
+      currentFilter = li.dataset.filter;
+      const conf = filtersConfig[currentFilter];
+      if (!conf) {
+        sliderPanel.style.display = 'none';
+        return;
+      }
+      slider.min = conf.min;
+      slider.max = conf.max;
+      slider.step = conf.step;
+      slider.value = conf.default;
+      sliderLabel.textContent = li.textContent;
+      currentFilterValue = conf.default;
+
+      sliderPanel.style.display = 'block';
+      applyFilter();
     });
   });
 
-  // Manual Tools button click
-  document.querySelectorAll('.tools-list button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      alert(`Apply tool: ${btn.textContent}`); // Ganti dengan fungsi nyata
-      // Show slider if tool supports intensity (contoh)
-      const toolsWithIntensity = ['Blur', 'Sharpen', 'Dodge & Burn', 'Noise Reduction'];
-      if (toolsWithIntensity.includes(btn.textContent)) {
-        document.getElementById('toolsSliderContainer').style.display = 'block';
-        document.getElementById('toolsSlider').value = 50;
-      } else {
-        document.getElementById('toolsSliderContainer').style.display = 'none';
-      }
+  // Slider input
+  slider.addEventListener('input', () => {
+    currentFilterValue = slider.value;
+    applyFilter();
+  });
+
+  // Download function
+  const downloadBtn = document.getElementById('download-btn');
+  const downloadRes = document.getElementById('download-res');
+  downloadBtn.addEventListener('click', () => {
+    if (!originalImage) {
+      alert('Silakan upload gambar terlebih dahulu');
+      return;
+    }
+    const scale = downloadRes.value / canvas.width;
+    const dw = downloadRes.value;
+    const dh = canvas.height * scale;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = dw;
+    offscreen.height = dh;
+    const offCtx = offscreen.getContext('2d');
+
+    // Apply filter as CSS filter string
+    offCtx.filter = canvas.style.filter || 'none';
+    offCtx.drawImage(originalImage, 0, 0, dw, dh);
+
+    offscreen.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dsrt_edit.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     });
   });
 
-  // Slider update filter intensity
-  filterSlider.addEventListener('input', e => {
-  applyFilter(currentFilter, e.target.value);
-});
+  // Back button (dummy)
+  const backBtn = document.getElementById('back-btn');
+  backBtn.addEventListener('click', () => {
+    alert('Back button clicked - implement navigasi fitur lain di sini');
+  });
+
+  // Init: collapse lists by default
+  filterList.classList.remove('expanded');
+  toolsList.classList.remove('expanded');
+  filterHeader.classList.remove('expanded');
+  toolsHeader.classList.remove('expanded');
+
+</script>
+
+</body>
+  </html>
